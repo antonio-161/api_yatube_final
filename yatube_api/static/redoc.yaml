@@ -718,6 +718,55 @@ paths:
           description: Запрос от имени анонимного пользователя
       tags:
         - api
+  /api/v1/auth/register/:
+    post:
+      operationId: Регистрация пользователя
+      description: >-
+        Регистрация нового пользователя в системе. Анонимные запросы разрешены.
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistrationResponse'
+          description: Пользователь успешно зарегистрирован
+        '400':
+          content:
+            application/json:
+              examples:
+                'Отсутствуют обязательные поля':
+                  value:
+                    username:
+                      - Обязательное поле.
+                    email:
+                      - Обязательное поле.
+                    password:
+                      - Обязательное поле.
+                'Пользователь уже существует':
+                  value:
+                    username:
+                      - Пользователь с таким именем уже существует.
+                    email:
+                      - Пользователь с таким email уже существует.
+                'Пароли не совпадают':
+                  value:
+                    non_field_errors:
+                      - Пароли не совпадают.
+          description: Ошибка валидации данных
+      tags:
+        - auth
   /api/v1/jwt/create/:
     post:
       operationId: Получить JWT-токен
@@ -955,6 +1004,71 @@ components:
           title: username
       required:
         - following
+    UserRegistration:
+      type: object
+      properties:
+        username:
+          type: string
+          title: Имя пользователя
+          maxLength: 150
+          minLength: 1
+        email:
+          type: string
+          format: email
+          title: Email адрес
+        password:
+          type: string
+          title: Пароль
+          minLength: 8
+          writeOnly: true
+        password_confirm:
+          type: string
+          title: Подтверждение пароля
+          minLength: 8
+          writeOnly: true
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 150
+          nullable: true
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 150
+          nullable: true
+      required:
+        - username
+        - email
+        - password
+        - password_confirm
+    UserRegistrationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          title: ID пользователя
+          readOnly: true
+        username:
+          type: string
+          title: Имя пользователя
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: Email адрес
+          readOnly: true
+        first_name:
+          type: string
+          title: Имя
+          readOnly: true
+        last_name:
+          type: string
+          title: Фамилия
+          readOnly: true
+        message:
+          type: string
+          title: Сообщение о результате
+          readOnly: true
     TokenObtainPair:
       type: object
       properties:

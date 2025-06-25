@@ -1,16 +1,40 @@
+from django.contrib.auth import get_user_model
 from rest_framework import filters, mixins, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
-    CommentSerializer, FollowSerializer, GroupSerializer, PostSerializer
+    CommentSerializer,
+    FollowSerializer,
+    GroupSerializer,
+    PostSerializer,
+    UserRegistrationSerializer
 )
 from posts.models import Comment, Group, Post
 
 
+User = get_user_model()
+
+
+class UserRegistrationViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    """
+    ViewSet для регистрации новых пользователей.
+    Поддерживает только создание (POST).
+    """
+    queryset = User.objects.all()
+    serializer_class = UserRegistrationSerializer
+    permission_classes = (AllowAny,)
+
+
 class PostViewSet(viewsets.ModelViewSet):
+    """ViewSet для работы с постами.
+    Поддерживает создание, чтение, обновление и удаление постов.
+    """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
@@ -21,6 +45,9 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """ViewSet для работы с комментариями к постам.
+    Поддерживает создание, чтение, обновление и удаление комментариев.
+    """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
@@ -40,6 +67,9 @@ class FollowViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """ViewSet для работы с подписками.
+    Поддерживает создание, чтение подписок.
+    """
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
@@ -53,5 +83,8 @@ class FollowViewSet(
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet для работы с группами.
+    Поддерживает чтение групп.
+    """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
